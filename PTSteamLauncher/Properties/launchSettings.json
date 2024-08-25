@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "PTSteamLauncher": {
+      "commandName": "Project"
+    },
+    "Start PowerToys": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Users\\57735\\AppData\\Local\\PowerToys\\PowerToys.exe"
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+    "ID": "9e13e2aa-da92-4094-84f8-6f2e2d3e90db",
+    "ActionKeyword": "==",
+    "Disabled": false,
+    "IsGlobal": false,
+    "Name": "Steam Launcher",
+    "Version": "0.1.0",
+    "Author": "Zapic",
+    "Language": "csharp",
+    "Website": "",
+    "ExecuteFileName": "Community.PowerToys.Run.Plugin.SteamLauncher.dll",
+    "IcoPathDark": "Images\\SteamLauncher.dark.png",
+    "IcoPathLight": "Images\\SteamLauncher.light.png"
+}
