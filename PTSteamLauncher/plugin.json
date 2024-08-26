@@ -4,7 +4,7 @@
     "Disabled": false,
     "IsGlobal": false,
     "Name": "Steam Launcher",
-    "Version": "0.1.0",
+    "Version": "0.2.0",
     "Author": "Zapic",
     "Language": "csharp",
     "Website": "https://github.com/KawaiiZapic/PowerToysSteamLauncher",

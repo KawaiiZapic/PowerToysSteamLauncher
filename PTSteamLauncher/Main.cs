@@ -6,7 +6,7 @@ using Wox.Infrastructure;
 using Wox.Plugin;
 
 namespace Community.PowerToys.Run.Plugin.SteamLauncher {
-    public partial class Main: IPlugin, IReloadable, IContextMenu {
+    public partial class Main: IPlugin, IReloadable, IContextMenu, IDisposable {
 
         [GeneratedRegex("\"path\"\\s*\"([^\"]*)\"")]
         private static partial Regex LibraryPathMather();
@@ -22,7 +22,9 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher {
         private string SteamPath = "";
 
         private List<SteamGame> steamGames = new List<SteamGame>();
+        private List<FileSystemWatcher> _fileSystemWatchers = new List<FileSystemWatcher>();
 
+        private bool _disposed;
 
         public void Init(PluginInitContext context) {
             try {
@@ -73,16 +75,36 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher {
 
         private void InitSteamData() {
             steamGames.Clear();
+            CleanFSWathcer();
             SteamPath =
                 Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Valve\\Steam", "InstallPath", null)?.ToString()
                 ?? Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Valve\\Steam", "InstallPath", null)?.ToString()
                 ?? throw new Exception("Can't detected Steam installation path.");
+
+            var libWatcher = new FileSystemWatcher(Path.Combine(SteamPath, "config")) {
+                Filter = "libraryfolders.vdf",
+                EnableRaisingEvents = true,
+                IncludeSubdirectories = false
+            };
+            libWatcher.Created += (object sender, FileSystemEventArgs e) => InitSteamData();
+            libWatcher.Deleted += (object sender, FileSystemEventArgs e) => InitSteamData();
+            _fileSystemWatchers.Add(libWatcher);
+
             var SteamLibrariesData = File.ReadAllLines(Path.Combine(SteamPath, "config", "libraryfolders.vdf"));
             List<SteamLibrary> SteamLibraries = [];
             foreach (string line in SteamLibrariesData) {
                 var m = LibraryPathMather().Match(line);
                 if (m.Success) {
-                    SteamLibraries.Add(new SteamLibrary(SteamPath, Uri.UnescapeDataString(m.Groups[1].Value)));
+                    var path = Path.Combine(Uri.UnescapeDataString(m.Groups[1].Value), "steamapps");
+                    SteamLibraries.Add(new SteamLibrary(SteamPath, path));
+                    var watcher = new FileSystemWatcher(path) {
+                        Filter = "appmanifest_*.acf",
+                        EnableRaisingEvents = true,
+                        IncludeSubdirectories = false
+                    };
+                    watcher.Created += (object sender, FileSystemEventArgs e) => InitSteamData();
+                    watcher.Deleted += (object sender, FileSystemEventArgs e) => InitSteamData();
+                    _fileSystemWatchers.Add(watcher);
                 }
             }
 
@@ -105,7 +127,7 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher {
             [GeneratedRegex("\"name\"\\s*\"([^\"]*)\"")]
             private static partial Regex GameNameMatcher();
 
-            private readonly DirectoryInfo _library = new(Path.Combine(_Path, "steamapps"));
+            private readonly DirectoryInfo _library = new(_Path);
 
             private static readonly List<string> InternalBlockList = [
                 "228980" // Steamworks Shared
@@ -167,6 +189,25 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher {
                     }
                 },
             ];
+        }
+
+        private void CleanFSWathcer() {
+            foreach (var watcher in _fileSystemWatchers) {
+                watcher.Dispose();
+            }
+            _fileSystemWatchers.Clear();
+        }
+
+        public void Dispose() {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing) {
+            if (!_disposed && disposing) {
+                CleanFSWathcer();
+                _disposed = true;
+            }
         }
     }
 }
