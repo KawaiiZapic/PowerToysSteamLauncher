@@ -7,7 +7,7 @@
     "Version": "0.1.0",
     "Author": "Zapic",
     "Language": "csharp",
-    "Website": "",
+    "Website": "https://github.com/KawaiiZapic/PowerToysSteamLauncher",
     "ExecuteFileName": "Community.PowerToys.Run.Plugin.SteamLauncher.dll",
     "IcoPathDark": "Images\\SteamLauncher.dark.png",
     "IcoPathLight": "Images\\SteamLauncher.light.png"
