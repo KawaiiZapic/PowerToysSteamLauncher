@@ -21,8 +21,12 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher {
 
         private string SteamPath = "";
 
-        private List<SteamGame> steamGames = new List<SteamGame>();
-        private List<FileSystemWatcher> _fileSystemWatchers = new List<FileSystemWatcher>();
+        private readonly List<SteamGame> steamGames = [];
+        private readonly List<FileSystemWatcher> _fileSystemWatchers = [];
+
+        private int _mutCounter = 0;
+        private readonly Mutex _mutex = new(false);
+        
 
         private bool _disposed;
 
@@ -74,8 +78,17 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher {
         }
 
         private void InitSteamData() {
-            steamGames.Clear();
+            _mutCounter += 1;
+            Thread.Sleep(1000);
+            _mutex.WaitOne();
+            _mutCounter -= 1;
+            if (_mutCounter != 0) {
+                _mutex.ReleaseMutex();
+                return;
+            }
+
             CleanFSWathcer();
+            steamGames.Clear();
             SteamPath =
                 Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Valve\\Steam", "InstallPath", null)?.ToString()
                 ?? Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Valve\\Steam", "InstallPath", null)?.ToString()
@@ -111,58 +124,8 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher {
             foreach (var library in SteamLibraries) {
                 steamGames.AddRange(library.GetGames());
             }
-        }
+            _mutex.ReleaseMutex();
 
-        struct SteamGame {
-            public string id;
-            public string name;
-            public string icon;
-            public string? localizationName;
-        }
-
-        partial class SteamLibrary(string SteamPath, string _Path) {
-
-            [GeneratedRegex("\"appid\"\\s*\"(\\d*)\"")]
-            private static partial Regex GameIdMatcher();
-            [GeneratedRegex("\"name\"\\s*\"([^\"]*)\"")]
-            private static partial Regex GameNameMatcher();
-
-            private readonly DirectoryInfo _library = new(_Path);
-
-            private static readonly List<string> InternalBlockList = [
-                "228980" // Steamworks Shared
-            ];
-
-            public SteamGame[] GetGames() {
-                _library.Refresh();
-                if (!_library.Exists) {
-                    return [];
-                }
-                var FoundGames = new List<SteamGame>();
-                var games = _library.GetFiles("appmanifest_*.acf");
-
-                foreach (var game in games) {
-                    var GameInfo = File.ReadAllText(game.FullName);
-                    var id = GameIdMatcher().Match(GameInfo).Groups[1]?.Value ?? null;
-                    var name = GameNameMatcher().Match(GameInfo).Groups[1]?.Value ?? null;
-                    if (id == null || name == null || InternalBlockList.Contains(id)) {
-                        continue;
-                    }
-                    var localizationName = Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Steam App " + id, "DisplayName", null)?.ToString();
-                    var icon = Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Steam App " + id, "DisplayIcon", null)?.ToString();
-                    if (!File.Exists(icon)) {
-                        icon = Path.Combine(SteamPath, "appcache", "librarycache", id + "_icon.jpg");
-                    }
-                    FoundGames.Add(new SteamGame {
-                        id = id,
-                        name = name,
-                        icon = icon,
-                        localizationName = localizationName
-                    });
-
-                }
-                return [.. FoundGames];
-            }
         }
 
         public List<ContextMenuResult> LoadContextMenus(Result selectedResult) {
@@ -208,6 +171,58 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher {
                 CleanFSWathcer();
                 _disposed = true;
             }
+        }
+    }
+
+    struct SteamGame {
+        public string id;
+        public string name;
+        public string icon;
+        public string? localizationName;
+    }
+
+    partial class SteamLibrary(string SteamPath, string _Path) {
+
+        [GeneratedRegex("\"appid\"\\s*\"(\\d*)\"")]
+        private static partial Regex GameIdMatcher();
+        [GeneratedRegex("\"name\"\\s*\"([^\"]*)\"")]
+        private static partial Regex GameNameMatcher();
+
+        private readonly DirectoryInfo _library = new(_Path);
+
+        private static readonly List<string> InternalBlockList = [
+            "228980" // Steamworks Shared
+        ];
+
+        public SteamGame[] GetGames() {
+            _library.Refresh();
+            if (!_library.Exists) {
+                return [];
+            }
+            var FoundGames = new List<SteamGame>();
+            var games = _library.GetFiles("appmanifest_*.acf");
+
+            foreach (var game in games) {
+                var GameInfo = File.ReadAllText(game.FullName);
+                var id = GameIdMatcher().Match(GameInfo).Groups[1]?.Value ?? null;
+                var name = GameNameMatcher().Match(GameInfo).Groups[1]?.Value ?? null;
+                if (id == null || name == null || InternalBlockList.Contains(id)) {
+                    continue;
+                }
+                var localizationName = Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Steam App " + id, "DisplayName", null)?.ToString();
+                var icon = Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Steam App " + id, "DisplayIcon", null)?.ToString();
+                if (!File.Exists(icon)) {
+                    icon = Path.Combine(SteamPath, "appcache", "librarycache", id + "_icon.jpg");
+                }
+                FoundGames.Add(new SteamGame {
+                    id = id,
+                    name = name,
+                    icon = icon,
+                    localizationName = localizationName
+                });
+
+            }
+            return [.. FoundGames];
         }
     }
 }
