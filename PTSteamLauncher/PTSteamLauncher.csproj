@@ -12,6 +12,7 @@
         <Product>$(Title)</Product>
         <Authors>KawaiiZapic</Authors>
         <RepositoryUrl></RepositoryUrl>
+        <GenerateSatelliteAssembliesForCore>true</GenerateSatelliteAssembliesForCore>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)'=='Debug'">
@@ -51,14 +52,23 @@
     </ItemGroup>
 
     <ItemGroup>
-        <EmbeddedResource Update="Properties\Resources.resx">
-            <Generator>ResXFileCodeGenerator</Generator>
-            <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+        <EmbeddedResource Update="Localizations\Resource.resx">
+          <Generator>ResXFileCodeGenerator</Generator>
+          <LastGenOutput>Resource.Designer.cs</LastGenOutput>
         </EmbeddedResource>
-        <Compile Update="Properties\Resources.Designer.cs">
-            <DesignTime>True</DesignTime>
-            <AutoGen>True</AutoGen>
-            <DependentUpon>Resources.resx</DependentUpon>
+        <EmbeddedResource Update="Localizations\Resource.zh-CN.resx">
+          <Generator>ResXFileCodeGenerator</Generator>
+          <LastGenOutput>Resource.zh-CN.Designer.cs</LastGenOutput>
+        </EmbeddedResource>
+        <Compile Update="Localizations\Resource.Designer.cs">
+          <DesignTime>True</DesignTime>
+          <AutoGen>True</AutoGen>
+          <DependentUpon>Resource.resx</DependentUpon>
+        </Compile>
+        <Compile Update="Localizations\Resource.zh-CN.Designer.cs">
+          <DesignTime>True</DesignTime>
+          <AutoGen>True</AutoGen>
+          <DependentUpon>Resource.zh-CN.resx</DependentUpon>
         </Compile>
     </ItemGroup>
 

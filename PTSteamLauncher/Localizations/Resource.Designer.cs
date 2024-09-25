@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Community.PowerToys.Run.Plugin.SteamLauncher.Properties {
+namespace Community.PowerToys.Run.Plugin.SteamLauncher.Localizations {
     using System;
     
     
@@ -22,14 +22,14 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher.Properties {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources {
+    internal class Resource {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal Resources() {
+        internal Resource() {
         }
         
         /// <summary>
@@ -39,7 +39,7 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Community.PowerToys.Run.Plugin.SteamLauncher.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Community.PowerToys.Run.Plugin.SteamLauncher.Localizations.Resource", typeof(Resource).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -61,7 +61,43 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher.Properties {
         }
         
         /// <summary>
-        ///   查找类似 SteamLauncher plugin 的本地化字符串。
+        ///   查找类似 Open Game Config 的本地化字符串。
+        /// </summary>
+        internal static string action_options {
+            get {
+                return ResourceManager.GetString("action_options", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Play 的本地化字符串。
+        /// </summary>
+        internal static string action_play {
+            get {
+                return ResourceManager.GetString("action_play", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Steam Game 的本地化字符串。
+        /// </summary>
+        internal static string game_description {
+            get {
+                return ResourceManager.GetString("game_description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Steam Launcher can&apos;t be initialized 的本地化字符串。
+        /// </summary>
+        internal static string initialization_failed_title {
+            get {
+                return ResourceManager.GetString("initialization_failed_title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Launch your steam games. 的本地化字符串。
         /// </summary>
         internal static string plugin_description {
             get {
@@ -70,7 +106,7 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher.Properties {
         }
         
         /// <summary>
-        ///   查找类似 SteamLauncher 的本地化字符串。
+        ///   查找类似 Steam Launcher 的本地化字符串。
         /// </summary>
         internal static string plugin_name {
             get {
@@ -79,11 +115,20 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher.Properties {
         }
         
         /// <summary>
-        ///   查找类似 SteamLauncher settings 的本地化字符串。
+        ///   查找类似 Try re-install Steam by official installer. 的本地化字符串。
         /// </summary>
-        internal static string plugin_setting {
+        internal static string steam_not_found_description {
             get {
-                return ResourceManager.GetString("plugin_setting", resourceCulture);
+                return ResourceManager.GetString("steam_not_found_description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Can&apos;t find Steam 的本地化字符串。
+        /// </summary>
+        internal static string steam_not_found_title {
+            get {
+                return ResourceManager.GetString("steam_not_found_title", resourceCulture);
             }
         }
     }

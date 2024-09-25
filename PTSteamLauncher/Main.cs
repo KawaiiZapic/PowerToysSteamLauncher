@@ -4,20 +4,18 @@ using System.IO;
 using System.Text.RegularExpressions;
 using Wox.Infrastructure;
 using Wox.Plugin;
+using Community.PowerToys.Run.Plugin.SteamLauncher.Localizations;
 
 namespace Community.PowerToys.Run.Plugin.SteamLauncher {
     public partial class Main: IPlugin, IReloadable, IContextMenu, IDisposable {
 
         [GeneratedRegex("\"path\"\\s*\"([^\"]*)\"")]
         private static partial Regex LibraryPathMather();
-        public string Name => "Steam Launcher";
+        public string Name => Resource.plugin_name;
+        public string Description => Resource.plugin_description;
         public static string PluginID => "9e13e2aa-da92-4094-84f8-6f2e2d3e90db";
 
-        public string Description => "Launch your steam games.";
-
-        private bool _Initialized = false;
-
-        private string _InitialzedFailedReason = "";
+        private Exception? _InitialzedFailedReason;
 
         private string SteamPath = "";
 
@@ -31,30 +29,35 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher {
         private bool _disposed;
 
         public void Init(PluginInitContext context) {
-            try {
-                InitSteamData();
-                _Initialized = true;
-            } catch (Exception e) {
-                _InitialzedFailedReason = e.Message;
-                _Initialized = false;
-            }
+            ReloadData();
         }
 
         public List<Result> Query(Query query) {
-            if (!_Initialized) {
+            if (_InitialzedFailedReason != null) {
+                if (_InitialzedFailedReason is SteamNotFoundException) {
+                    return [
+                        new Result {
+                            Title = Resource.steam_not_found_title,
+                            SubTitle = Resource.steam_not_found_description
+                        }
+                    ];
+                }
                 return [
                     new Result {
-                        Title = "Steam Launcher can't be initialized",
-                        SubTitle = _InitialzedFailedReason
+                        Title = Resource.initialization_failed_title,
+                        SubTitle = _InitialzedFailedReason.Message,
+                        Action = (e) => {
+                            throw _InitialzedFailedReason;
+                        }
                     }
-                    ];
+                ];
             }
             List<Result> results = [];
             foreach (SteamGame game in steamGames) {
                 if (StringMatcher.FuzzySearch(query.Search, game.name).Success || (game.localizationName != null && StringMatcher.FuzzySearch(query.Search, game.localizationName).Success)) {
                     results.Add(new Result {
                         Title = game.localizationName ?? game.name,
-                        SubTitle = "Steam Game",
+                        SubTitle = (game.localizationName != null && game.localizationName.Trim() != game.name.Trim()) ? game.name : Resource.game_description,
                         IcoPath = game.icon,
                         ContextData = game.id,
                         Action = (e) => {
@@ -70,10 +73,9 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher {
         public void ReloadData() {
             try {
                 InitSteamData();
-                _Initialized = true;
+                _InitialzedFailedReason = null;
             } catch (Exception e) {
-                _InitialzedFailedReason = e.Message;
-                _Initialized = false;
+                _InitialzedFailedReason = e;
             }
         }
 
@@ -92,7 +94,7 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher {
             SteamPath =
                 Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Valve\\Steam", "InstallPath", null)?.ToString()
                 ?? Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Valve\\Steam", "InstallPath", null)?.ToString()
-                ?? throw new Exception("Can't detected Steam installation path.");
+                ?? throw new SteamNotFoundException();
 
             var libWatcher = new FileSystemWatcher(Path.Combine(SteamPath, "config")) {
                 Filter = "libraryfolders.vdf",
@@ -136,7 +138,7 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher {
                 new ContextMenuResult {
                     Glyph = "\xE768",
                     FontFamily = "Segoe Fluent Icons,Segoe MDL2 Assets",
-                    Title = "Play",
+                    Title = Resource.action_play,
                     Action = (e) => {
                         Process.Start(Path.Combine(SteamPath, "steam.exe"), "steam://launch/" + id);
                         return true;
@@ -145,7 +147,7 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher {
                 new ContextMenuResult {
                     Glyph = "\xE713",
                     FontFamily = "Segoe Fluent Icons,Segoe MDL2 Assets",
-                    Title = "Open Game Config",
+                    Title = Resource.action_options,
                     Action = (e) => {
                         Process.Start(Path.Combine(SteamPath, "steam.exe"), "steam://gameproperties/" + id);
                         return true;
@@ -225,4 +227,6 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher {
             return [.. FoundGames];
         }
     }
+
+    class SteamNotFoundException : Exception { }
 }
