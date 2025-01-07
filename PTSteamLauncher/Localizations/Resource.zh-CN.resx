@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -140,5 +140,11 @@
   </data>
   <data name="steam_not_found_description" xml:space="preserve">
     <value>尝试用官方安装包重新安装Steam</value>
+  </data>
+  <data name="action_hide" xml:space="preserve">
+    <value>在全局结果中隐藏</value>
+  </data>
+  <data name="action_unhide" xml:space="preserve">
+    <value>取消隐藏游戏</value>
   </data>
 </root>

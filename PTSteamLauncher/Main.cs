@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using Wox.Infrastructure;
 using Wox.Plugin;
 using Community.PowerToys.Run.Plugin.SteamLauncher.Localizations;
+using Wox.Infrastructure.Storage;
 
 namespace Community.PowerToys.Run.Plugin.SteamLauncher {
     public partial class Main: IPlugin, IReloadable, IContextMenu, IDisposable {
@@ -24,6 +25,34 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher {
 
         private int _mutCounter = 0;
         private readonly Mutex _mutex = new(false);
+        private readonly Dictionary<string, GameSetting> _GameSettings;
+        private readonly PluginJsonStorage<Settings> _storage;
+
+        class GameSetting {
+            public bool Hidden { get; set; }
+        };
+
+        class Settings {
+            public int Version { get; set; }
+            public Dictionary<string, GameSetting> Data { get; set; } = [];
+        }
+
+        public Main() {
+            _storage = new();
+
+            if (!File.Exists(_storage.FilePath)) {
+                var conf = _storage.Load();
+                conf.Version = 1;
+                conf.Data = [];
+
+                _GameSettings = conf.Data;
+                _GameSettings.Add("228980", new GameSetting { Hidden = true }); // Default hide steamwork common shared
+
+                _storage.Save();
+            }
+            _GameSettings = _storage.Load().Data;
+            
+        }
         
 
         private bool _disposed;
@@ -53,12 +82,16 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher {
                 ];
             }
             List<Result> results = [];
+            var hasActionKeyword = query.ActionKeyword != "";
             foreach (SteamGame game in steamGames) {
                 if (
-                    (query.ActionKeyword != "" && query.Search.Length == 0)
+                    (hasActionKeyword && query.Search.Length == 0)
                     || StringMatcher.FuzzySearch(query.Search, game.name).Success
                     || (game.localizationName != null && StringMatcher.FuzzySearch(query.Search, game.localizationName).Success)
                 ) {
+                    if (!hasActionKeyword && _GameSettings.TryGetValue(game.id, out var setting) && setting.Hidden) {
+                        continue;
+                    }
                     results.Add(new Result {
                         Title = game.localizationName ?? game.name,
                         SubTitle = (game.localizationName != null && game.localizationName.Trim() != game.name.Trim()) ? game.name : Resource.game_description,
@@ -138,6 +171,11 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher {
             if (selectedResult.ContextData is not string id) {
                 return [];
             }
+            if (!_GameSettings.TryGetValue(id, out GameSetting? game)) {
+                game = new() {
+                    Hidden = false
+                };
+            }
             return [
                 new ContextMenuResult {
                     Glyph = "\xE768",
@@ -157,6 +195,17 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher {
                         return true;
                     }
                 },
+                new ContextMenuResult {
+                    Glyph = game.Hidden ? "\xE890" : "\xED1A",
+                    FontFamily = "Segoe Fluent Icons,Segoe MDL2 Assets",
+                    Title = game.Hidden ? Resource.action_unhide : Resource.action_hide,
+                    Action = (e) => {
+                        game.Hidden = !game.Hidden;
+                        _GameSettings.TryAdd(id, game);
+                        _storage.Save();
+                        return true;
+                    }
+                }
             ];
         }
 
@@ -196,10 +245,6 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher {
 
         private readonly DirectoryInfo _library = new(_Path);
 
-        private static readonly List<string> InternalBlockList = [
-            "228980" // Steamworks Shared
-        ];
-
         public SteamGame[] GetGames() {
             _library.Refresh();
             if (!_library.Exists) {
@@ -212,7 +257,7 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher {
                 var GameInfo = File.ReadAllText(game.FullName);
                 var id = GameIdMatcher().Match(GameInfo).Groups[1]?.Value ?? null;
                 var name = GameNameMatcher().Match(GameInfo).Groups[1]?.Value ?? null;
-                if (id == null || name == null || InternalBlockList.Contains(id)) {
+                if (id == null || name == null) {
                     continue;
                 }
                 var localizationName = Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Steam App " + id, "DisplayName", null)?.ToString();

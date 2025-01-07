@@ -61,6 +61,15 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher.Localizations {
         }
         
         /// <summary>
+        ///   查找类似 Hide in Global Result 的本地化字符串。
+        /// </summary>
+        internal static string action_hide {
+            get {
+                return ResourceManager.GetString("action_hide", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Open Game Config 的本地化字符串。
         /// </summary>
         internal static string action_options {
@@ -75,6 +84,15 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher.Localizations {
         internal static string action_play {
             get {
                 return ResourceManager.GetString("action_play", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Unhide Game 的本地化字符串。
+        /// </summary>
+        internal static string action_unhide {
+            get {
+                return ResourceManager.GetString("action_unhide", resourceCulture);
             }
         }
         

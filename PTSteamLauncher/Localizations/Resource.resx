@@ -141,4 +141,10 @@
   <data name="steam_not_found_description" xml:space="preserve">
     <value>Try re-install Steam by official installer.</value>
   </data>
+  <data name="action_hide" xml:space="preserve">
+    <value>Hide in Global Result</value>
+  </data>
+  <data name="action_unhide" xml:space="preserve">
+    <value>Unhide Game</value>
+  </data>
 </root>
