@@ -54,7 +54,11 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher {
             }
             List<Result> results = [];
             foreach (SteamGame game in steamGames) {
-                if (StringMatcher.FuzzySearch(query.Search, game.name).Success || (game.localizationName != null && StringMatcher.FuzzySearch(query.Search, game.localizationName).Success)) {
+                if (
+                    (query.ActionKeyword != "" && query.Search.Length == 0)
+                    || StringMatcher.FuzzySearch(query.Search, game.name).Success
+                    || (game.localizationName != null && StringMatcher.FuzzySearch(query.Search, game.localizationName).Success)
+                ) {
                     results.Add(new Result {
                         Title = game.localizationName ?? game.name,
                         SubTitle = (game.localizationName != null && game.localizationName.Trim() != game.name.Trim()) ? game.name : Resource.game_description,
