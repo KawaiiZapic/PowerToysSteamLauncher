@@ -5,8 +5,13 @@ Launch any game installed by steam, without creating any desktop shortcut.
 ![screenshot](./assets/screenshot.png)
 
 ## Installation
+#### Manual
 1. Download plugin from Release
 2. Extract it to `%LOCALAPPDATA%\Microsoft\PowerToys\PowerToys Run\Plugins`
+#### Via [ptr](https://github.com/8LWXpg/ptr)
+```
+ptr add SteamLauncher KawaiiZapic/PowerToysSteamLauncher
+```
 
 ## Usage
 1. The default keyword is `==`
