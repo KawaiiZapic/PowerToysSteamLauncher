@@ -15,7 +15,7 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher {
         public string Description => Resource.plugin_description;
         public static string PluginID => "9e13e2aa-da92-4094-84f8-6f2e2d3e90db";
 
-        private Exception? _InitialzedFailedReason;
+        private Exception? _InitializedFailedReason;
 
         private string SteamPath = "";
 
@@ -33,8 +33,8 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher {
         }
 
         public List<Result> Query(Query query) {
-            if (_InitialzedFailedReason != null) {
-                if (_InitialzedFailedReason is SteamNotFoundException) {
+            if (_InitializedFailedReason != null) {
+                if (_InitializedFailedReason is SteamNotFoundException) {
                     return [
                         new Result {
                             Title = Resource.steam_not_found_title,
@@ -45,9 +45,9 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher {
                 return [
                     new Result {
                         Title = Resource.initialization_failed_title,
-                        SubTitle = _InitialzedFailedReason.Message,
+                        SubTitle = _InitializedFailedReason.Message,
                         Action = (e) => {
-                            throw _InitialzedFailedReason;
+                            throw _InitializedFailedReason;
                         }
                     }
                 ];
@@ -73,9 +73,9 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher {
         public void ReloadData() {
             try {
                 InitSteamData();
-                _InitialzedFailedReason = null;
+                _InitializedFailedReason = null;
             } catch (Exception e) {
-                _InitialzedFailedReason = e;
+                _InitializedFailedReason = e;
             }
         }
 
@@ -89,7 +89,7 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher {
                 return;
             }
 
-            CleanFSWathcer();
+            CleanFSWatcher();
             steamGames.Clear();
             SteamPath =
                 Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Valve\\Steam", "InstallPath", null)?.ToString()
@@ -156,7 +156,7 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher {
             ];
         }
 
-        private void CleanFSWathcer() {
+        private void CleanFSWatcher() {
             foreach (var watcher in _fileSystemWatchers) {
                 watcher.Dispose();
             }
@@ -170,7 +170,7 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher {
 
         protected virtual void Dispose(bool disposing) {
             if (!_disposed && disposing) {
-                CleanFSWathcer();
+                CleanFSWatcher();
                 _disposed = true;
             }
         }
