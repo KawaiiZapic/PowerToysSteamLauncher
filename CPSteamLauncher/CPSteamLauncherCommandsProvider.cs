@@ -16,7 +16,7 @@ public partial class CPSteamLauncherCommandsProvider : CommandProvider
         DisplayName = Resource.PluginName;
         Icon = IconHelpers.FromRelativePaths("Assets/SteamLauncher.light.png", "Assets/SteamLauncher.dark.png");
         _commands = [
-            new CommandItem(new CPSteamLauncherPage()) { 
+            new CommandItem(new GamesPage()) { 
                 Title = DisplayName, 
                 Subtitle = Resource.PluginDescription, 
                 Icon = IconHelpers.FromRelativePaths("Assets/SteamLauncher.light.png", "Assets/SteamLauncher.dark.png") 

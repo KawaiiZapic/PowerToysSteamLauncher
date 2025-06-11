@@ -9,10 +9,11 @@ using Microsoft.CommandPalette.Extensions.Toolkit;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SteamGameInfoParser;
 
 namespace CPSteamLauncher;
 
-internal sealed partial class CPSteamLauncherPage : DynamicListPage, System.IDisposable {
+internal sealed partial class GamesPage : DynamicListPage, System.IDisposable {
     partial class ScoredListItem(ICommand command): ListItem(command) {
         public int MatchScore { get; set; }
         public long LastPlayed { get; set; }
@@ -23,13 +24,22 @@ internal sealed partial class CPSteamLauncherPage : DynamicListPage, System.IDis
     private IListItem[] _result = [];
 
 
-    public CPSteamLauncherPage()
+    public GamesPage()
     {
         Icon = IconHelpers.FromRelativePaths("Assets/SteamLauncher.light.png", "Assets/SteamLauncher.dark.png");
         Title = Resource.PluginName;
         gameLibrary.ReloadData();
         Name = "";
         UpdateSearchText("", "");
+    }
+
+    public static string MappingGameType(string type) {
+        return type switch {
+            "game" => Resource.GameTypeGame,
+            "application" => Resource.GameTypeApp,
+            "tool" => Resource.GameTypeTool,
+            _ => Resource.GameTypeGame
+        };
     }
 
     public override IListItem[] GetItems()
@@ -83,7 +93,7 @@ internal sealed partial class CPSteamLauncherPage : DynamicListPage, System.IDis
                     LastPlayed = userInfo.LastPlayed,
                     Tags = [
                         new Tag {
-                            Text = GameLibrary.MappingGameType(game.type)
+                            Text = MappingGameType(game.type)
                         }
                     ],
                     Details = new Details() {

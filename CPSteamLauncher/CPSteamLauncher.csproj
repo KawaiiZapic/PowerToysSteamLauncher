@@ -61,19 +61,10 @@
     <CsWinRTAotWarningLevel>2</CsWinRTAotWarningLevel>
     <!-- Suppress DynamicallyAccessedMemberTypes.PublicParameterlessConstructor in fallback code path of Windows SDK projection -->
     <WarningsNotAsErrors>IL2081</WarningsNotAsErrors>
-
-    <PublishTrimmed>false</PublishTrimmed>
+    <PublishTrimmed>$('$(Configuration)'=='Release')</PublishTrimmed>
     <PublishSingleFile>true</PublishSingleFile>
     <ProduceReferenceAssembly>True</ProduceReferenceAssembly>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="Resource\Resource1.Designer.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Remove="Resource\Resource1.resx" />
-  </ItemGroup>
 
   <ItemGroup>
     <None Remove="Directory.Build.targets" />

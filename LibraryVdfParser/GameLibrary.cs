@@ -1,12 +1,9 @@
 ﻿using Microsoft.Win32;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using SteamGameInfoParser;
 using System.Globalization;
+using System.Net;
 
-namespace CPSteamLauncher.Helper {
-    internal partial class GameLibrary: IDisposable {
+namespace SteamGameInfoParser {
+    public class GameLibrary: IDisposable {
 
         public Exception? InitializedFailedReason { get; private set; }
         public string SteamPath { get; private set; }
@@ -43,16 +40,16 @@ namespace CPSteamLauncher.Helper {
             gameLibrary.StartWatch();
 
             AppList = [];
-            ReloadData();
+            InitData();
         }
 
-        public static string MappingGameType(string type) {
-            return type switch {
-                "game" => Resource.GameTypeGame,
-                "application" => Resource.GameTypeApp,
-                "tool" => Resource.GameTypeTool,
-                _ => Resource.GameTypeGame
-            };
+        public void InitData() {
+            try {
+                ReloadData();
+                InitializedFailedReason = null;
+            } catch (Exception e) {
+                InitializedFailedReason = e;
+            }
         }
 
         public void ReloadData() {
@@ -75,9 +72,17 @@ namespace CPSteamLauncher.Helper {
                     name = common.name;
                     icon = Path.Combine(SteamPath, "steam", "games", common.clienticon + ".ico");
                     if (!File.Exists(icon)) {
-                        icon = $"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/apps/{id}/{common.clienticon}.ico";
-                    }
+                        if (Directory.Exists(Path.Combine(SteamPath, "steam", "games"))) {
+                            Task.Run(async () => {
+                                try {
+                                    using var client = new HttpClient();
+                                    var res = await client.GetAsync($"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/apps/{id}/{common.clienticon}.ico");
+                                    await res.Content.CopyToAsync(new FileStream(icon, FileMode.CreateNew));
+                                } finally { }
+                            });
+                        }
 
+                    }
                     large_icon = Path.Combine(SteamPath, "appcache", "librarycache", id, "header.jpg");
                     if (!File.Exists(large_icon)) {
                         large_icon = icon;
