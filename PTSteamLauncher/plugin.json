@@ -10,5 +10,6 @@
     "Website": "https://github.com/KawaiiZapic/PowerToysSteamLauncher",
     "ExecuteFileName": "Community.PowerToys.Run.Plugin.SteamLauncher.dll",
     "IcoPathDark": "Images\\SteamLauncher.dark.png",
-    "IcoPathLight": "Images\\SteamLauncher.light.png"
+    "IcoPathLight": "Images\\SteamLauncher.light.png",
+    "DynamicLoading": true
 }

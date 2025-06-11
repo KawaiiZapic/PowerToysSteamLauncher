@@ -13,6 +13,7 @@
         <Authors>KawaiiZapic</Authors>
         <RepositoryUrl></RepositoryUrl>
         <GenerateSatelliteAssembliesForCore>true</GenerateSatelliteAssembliesForCore>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)'=='Debug'">
