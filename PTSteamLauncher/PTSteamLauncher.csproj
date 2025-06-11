@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>net8.0-windows</TargetFramework>
         <useWPF>true</useWPF>
@@ -76,6 +76,7 @@
         <None Include="plugin.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+        <ProjectReference Include="..\LibraryVdfParser\SteamGameInfoParser.csproj" />
         <None Update="Images\*.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>

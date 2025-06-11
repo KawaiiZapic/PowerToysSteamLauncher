@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "CPSteamLauncher (Package)": {
+      "commandName": "MsixPackage",
+      "doNotLaunchApp": true
+    },
+    "CPSteamLauncher (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
