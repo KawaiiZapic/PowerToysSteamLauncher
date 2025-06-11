@@ -40,7 +40,7 @@ internal sealed partial class CPSteamLauncherPage : DynamicListPage, System.IDis
     public override void UpdateSearchText(string oldSearch, string newSearch) {
         IsLoading = true;
         ShowDetails = true;
-        var _InitializedFailedReason = gameLibrary.GetInitializedFailedReason();
+        var _InitializedFailedReason = gameLibrary.InitializedFailedReason;
         if (_InitializedFailedReason != null) {
             if (_InitializedFailedReason is GameLibrary.SteamNotFoundException) {
                 _result = [
@@ -64,7 +64,7 @@ internal sealed partial class CPSteamLauncherPage : DynamicListPage, System.IDis
             return;
         }
         List<ScoredListItem> result = [];
-        foreach (var game in gameLibrary.GetSteamGames()) {
+        foreach (var game in gameLibrary.SteamGames) {
             var nameMatch = StringMatcher.FuzzySearch(newSearch, game.name);
             var localizedNameMatch = game.localizationName != null ? StringMatcher.FuzzySearch(newSearch, game.localizationName) : null;
             var isGame = game.type == "game";
