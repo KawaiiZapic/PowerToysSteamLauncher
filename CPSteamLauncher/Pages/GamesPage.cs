@@ -88,12 +88,15 @@ internal sealed partial class GamesPage : DynamicListPage, IDisposable {
             var isGame = game.type == "game";
             if (newSearch.Length == 0 || nameMatch.Success || (localizedNameMatch != null && localizedNameMatch.Success)) {
                 var icon = new IconInfo(game.icon);
-                var userInfo = loginUser.GameInfoDict.GetValueOrDefault(game.id, new() { 
+                var userInfo = loginUser.GameInfoDict.GetValueOrDefault(game.id, new() {
                     LastPlayed = 0,
                     Playtime = 0,
                     Playtime2wks = 0
                 });
-                result.Add(new ScoredListItem(new OpenUrlCommand("steam://launch/" + game.id)) {
+                result.Add(new ScoredListItem(new ActionCommand(() => {
+                    Process.Start(Path.Combine(gameLibrary.SteamPath, "steam.exe"), "steam://launch/" + game.id);
+                    return CommandResult.Dismiss();
+                })) {
                     Title = game.localizationName ?? game.name,
                     Subtitle = (game.localizationName != null && game.localizationName.Trim() != game.name.Trim()) ? game.name : Resource.GameDescription,
                     Icon = icon,
@@ -107,34 +110,34 @@ internal sealed partial class GamesPage : DynamicListPage, IDisposable {
                     Details = new Details() {
                         HeroImage = icon,
                         Metadata = [
-                            new DetailsElement() {
+                           new DetailsElement() {
                                 Key = game.localizationName ?? game.name,
                                 Data = new DetailsLink() {
                                     Text = (game.localizationName != null && game.localizationName.Trim() != game.name.Trim()) ? game.name : Resource.GameDescription
                                 }
-                            },new DetailsElement() {
+                           },new DetailsElement() {
                                 Key = isGame ? Resource.GameLastPlayed : Resource.AppLastUsed,
                                 Data = new DetailsLink() {
                                     Text = TimeFormat.RelativeTimestamp(userInfo.LastPlayed)
                                 }
-                            },
-                            new DetailsElement() {
+                           },
+                           new DetailsElement() {
                                 Key = isGame ? Resource.Gametime2wks : Resource.AppUsetime2wks,
                                 Data = new DetailsLink() {
                                     Text = TimeFormat.RelativeTime(userInfo.Playtime2wks * 60)
                                 }
-                            },
-                            new DetailsElement() {
+                           },
+                           new DetailsElement() {
                                 Key = isGame ? Resource.GametimeTotal : Resource.AppUsetimeTotal,
                                 Data = new DetailsLink() {
                                     Text = TimeFormat.RelativeTime(userInfo.Playtime * 60)
                                 }
-                            },new DetailsElement() {
+                           },new DetailsElement() {
                                 Key = Resource.GameId,
                                 Data = new DetailsLink() {
                                     Text = game.id
                                 }
-                            }
+                           }
                         ]
                     }
                 });
