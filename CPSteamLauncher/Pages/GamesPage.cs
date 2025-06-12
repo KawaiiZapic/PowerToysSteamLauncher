@@ -10,6 +10,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using SteamGameInfoParser;
+using System.Diagnostics;
+using System.IO;
 
 namespace CPSteamLauncher;
 
@@ -68,7 +70,10 @@ internal sealed partial class GamesPage : DynamicListPage, IDisposable {
                             throw _InitializedFailedReason;
                         })) {
                         Title = Resource.InitializationFailedTitle,
-                        Subtitle = _InitializedFailedReason.Message
+                        Subtitle = _InitializedFailedReason.Message,
+                        Details = new Details(){
+                            Body = _InitializedFailedReason.ToString()
+                        }
                     }
                 ];
             }
