@@ -1,6 +1,5 @@
 ﻿using Microsoft.Win32;
 using System.Globalization;
-using System.Net;
 
 namespace SteamGameInfoParser {
     public class GameLibrary: IDisposable {
@@ -77,7 +76,9 @@ namespace SteamGameInfoParser {
                                 try {
                                     using var client = new HttpClient();
                                     var res = await client.GetAsync($"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/apps/{id}/{common.clienticon}.ico");
-                                    await res.Content.CopyToAsync(new FileStream(icon, FileMode.CreateNew));
+                                    if (res.IsSuccessStatusCode) {
+                                        await res.Content.CopyToAsync(new FileStream(icon, FileMode.CreateNew));
+                                    }
                                 } finally { }
                             });
                         }
