@@ -13,10 +13,7 @@ namespace SteamGameInfoParser {
         private readonly string PreferredLang;
         private Dictionary<uint, App> AppList;
 
-        private readonly LoginUserParser loginUser;
         private readonly LibraryFolderVdfParser gameLibrary;
-
-        public Dictionary<string, GameInfo> GameInfo { get => loginUser.GameInfoDict; }
 
         public GameLibrary() {
             SteamPath =
@@ -28,9 +25,6 @@ namespace SteamGameInfoParser {
                 Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Valve\\Steam", "Language", null)?.ToString()
                 ?? Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Valve\\Steam", "Language", null)?.ToString()
                 ?? "english";
-
-            loginUser = new(SteamPath);
-            loginUser.StartWatch();
 
             gameLibrary = new(SteamPath);
             gameLibrary.Changed += (sender, e) => {
@@ -112,7 +106,6 @@ namespace SteamGameInfoParser {
         protected virtual void Dispose(bool disposing) {
             if (!_disposed && disposing) {
                 gameLibrary.Dispose();
-                loginUser.Dispose();
                 _disposed = true;
             }
         }

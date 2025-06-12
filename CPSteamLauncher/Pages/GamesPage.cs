@@ -13,13 +13,14 @@ using SteamGameInfoParser;
 
 namespace CPSteamLauncher;
 
-internal sealed partial class GamesPage : DynamicListPage, System.IDisposable {
+internal sealed partial class GamesPage : DynamicListPage, IDisposable {
     partial class ScoredListItem(ICommand command): ListItem(command) {
         public int MatchScore { get; set; }
         public long LastPlayed { get; set; }
     }
 
     private readonly GameLibrary gameLibrary = new();
+    private readonly LoginUserParser loginUser;
 
     private IListItem[] _result = [];
 
@@ -30,6 +31,8 @@ internal sealed partial class GamesPage : DynamicListPage, System.IDisposable {
         Title = Resource.PluginName;
         gameLibrary.ReloadData();
         Name = "";
+        loginUser = new(gameLibrary.SteamPath);
+        loginUser.StartWatch();
         UpdateSearchText("", "");
     }
 
@@ -80,7 +83,7 @@ internal sealed partial class GamesPage : DynamicListPage, System.IDisposable {
             var isGame = game.type == "game";
             if (newSearch.Length == 0 || nameMatch.Success || (localizedNameMatch != null && localizedNameMatch.Success)) {
                 var icon = new IconInfo(game.icon);
-                var userInfo = gameLibrary.GameInfo.GetValueOrDefault(game.id, new() { 
+                var userInfo = loginUser.GameInfoDict.GetValueOrDefault(game.id, new() { 
                     LastPlayed = 0,
                     Playtime = 0,
                     Playtime2wks = 0
@@ -143,5 +146,6 @@ internal sealed partial class GamesPage : DynamicListPage, System.IDisposable {
 
     public void Dispose() {
         gameLibrary.Dispose();
+        loginUser.Dispose();
     }
 }
