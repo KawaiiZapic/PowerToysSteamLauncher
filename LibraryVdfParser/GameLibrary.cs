@@ -15,6 +15,8 @@ namespace SteamGameInfoParser {
 
         private readonly LibraryFolderVdfParser gameLibrary;
 
+        public event EventHandler? Changed;
+
         public GameLibrary() {
             SteamPath =
                 Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Valve\\Steam", "InstallPath", null)?.ToString()
@@ -96,6 +98,7 @@ namespace SteamGameInfoParser {
                     localizationName = localizationName
                 });
             }
+            Changed?.Invoke(this, new());
         }
 
         public void Dispose() {

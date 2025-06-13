@@ -39,6 +39,8 @@ namespace SteamGameInfoParser {
 
         FileSystemWatcher? ConfigWatcher { get; set; }
 
+        public event EventHandler? Changed;
+
         public LoginUserParser(string steamPath) {
             this.SteamPath = steamPath;
             this.UserId = GetLastUserId();
@@ -72,6 +74,7 @@ namespace SteamGameInfoParser {
             var result = ser.Deserialize<LocalConfigVdfRoot>(file, new KVSerializerOptions { HasEscapeSequences = true });
 
             GameInfoDict = result.Software.Valve.Steam.apps;
+            Changed?.Invoke(this, new());
         }
 
         public void StartWatch() {
