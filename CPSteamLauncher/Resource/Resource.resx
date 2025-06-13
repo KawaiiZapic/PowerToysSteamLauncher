@@ -195,4 +195,10 @@
   <data name="AppUsetimeTotal" xml:space="preserve">
     <value>Usage time</value>
   </data>
+  <data name="OpenGamePropsTitle" xml:space="preserve">
+    <value>Game properties</value>
+  </data>
+  <data name="StartGameTitle" xml:space="preserve">
+    <value>Launch</value>
+  </data>
 </root>

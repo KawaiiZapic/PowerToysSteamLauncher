@@ -12,6 +12,7 @@ using System.Linq;
 using SteamGameInfoParser;
 using System.Diagnostics;
 using System.IO;
+using Windows.System;
 
 namespace CPSteamLauncher;
 
@@ -96,7 +97,10 @@ internal sealed partial class GamesPage : DynamicListPage, IDisposable {
                 result.Add(new ScoredListItem(new ActionCommand(() => {
                     Process.Start(Path.Combine(gameLibrary.SteamPath, "steam.exe"), "steam://launch/" + game.id);
                     return CommandResult.Dismiss();
-                })) {
+                }) { 
+                    Name = Resource.StartGameTitle,
+                    Icon = new IconInfo("\xE768"),
+                }) {
                     Title = game.localizationName ?? game.name,
                     Subtitle = (game.localizationName != null && game.localizationName.Trim() != game.name.Trim()) ? game.name : Resource.GameDescription,
                     Icon = icon,
@@ -139,7 +143,16 @@ internal sealed partial class GamesPage : DynamicListPage, IDisposable {
                                 }
                            }
                         ]
-                    }
+                    },
+                    MoreCommands = [
+                        new CommandContextItem(new ActionCommand(() => {
+                            Process.Start(Path.Combine(gameLibrary.SteamPath, "steam.exe"), "steam://gameproperties/" + game.id);
+                            return CommandResult.Dismiss();
+                        }) {
+                            Icon = new IconInfo("\xE713"),
+                            Name = Resource.OpenGamePropsTitle
+                        })
+                    ]
                 });
             }
         }

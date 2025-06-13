@@ -169,6 +169,15 @@ namespace CPSteamLauncher {
         }
         
         /// <summary>
+        ///   查找类似 Game properties 的本地化字符串。
+        /// </summary>
+        internal static string OpenGamePropsTitle {
+            get {
+                return ResourceManager.GetString("OpenGamePropsTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Launch your steam games. 的本地化字符串。
         /// </summary>
         internal static string PluginDescription {
@@ -183,6 +192,15 @@ namespace CPSteamLauncher {
         internal static string PluginName {
             get {
                 return ResourceManager.GetString("PluginName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Launch 的本地化字符串。
+        /// </summary>
+        internal static string StartGameTitle {
+            get {
+                return ResourceManager.GetString("StartGameTitle", resourceCulture);
             }
         }
         
