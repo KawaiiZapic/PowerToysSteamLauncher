@@ -21,21 +21,17 @@ internal sealed partial class GamesPage : ListPage, IDisposable {
         public long LastPlayed { get; set; }
     }
 
-    private readonly GameLibrary gameLibrary = new();
-    private readonly LoginUserParser loginUser;
+    private readonly GameLibrary gameLibrary = GameLibrary.Instance;
+    private readonly LoginUserParser loginUser = LoginUserParser.Instance;
 
     private IListItem[] _result = [];
-
 
     public GamesPage()
     {
         Icon = IconHelpers.FromRelativePaths("Assets/SteamLauncher.light.png", "Assets/SteamLauncher.dark.png");
         Title = Resource.PluginName;
         ShowDetails = true;
-        gameLibrary.ReloadData();
         Name = "";
-        loginUser = new(gameLibrary.SteamPath);
-        loginUser.StartWatch();
 
         gameLibrary.Changed += (s, e) => {
             BuildGameList();

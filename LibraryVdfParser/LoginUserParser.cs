@@ -1,5 +1,6 @@
-﻿using System.ComponentModel;
+﻿using Microsoft.Win32;
 using ValveKeyValue;
+using static SteamGameInfoParser.GameLibrary;
 
 namespace SteamGameInfoParser {
     public struct SteamUser { 
@@ -33,18 +34,35 @@ namespace SteamGameInfoParser {
     class NoLoginUserException: Exception { }
 
     public class LoginUserParser: IDisposable {
-        string SteamPath { get; set; }
-        public UInt64 UserId { get; set; }
-        public Dictionary<string, GameInfo> GameInfoDict { get; set; }
+        public string SteamPath { get; private set; }
+        public UInt64 UserId { get; private set; }
+        public Dictionary<string, GameInfo> GameInfoDict { get; private set; }
 
         FileSystemWatcher? ConfigWatcher { get; set; }
 
         public event EventHandler? Changed;
 
-        public LoginUserParser(string steamPath) {
-            this.SteamPath = steamPath;
-            this.UserId = GetLastUserId();
+        static LoginUserParser? _instance { get; set; }
+
+        public static LoginUserParser Instance {
+            get {
+                _instance ??= new LoginUserParser();
+                return _instance;
+            }
+        }
+
+        private LoginUserParser() {
+            SteamPath =
+                Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Valve\\Steam", "InstallPath", null)?.ToString()
+                ?? Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Valve\\Steam", "InstallPath", null)?.ToString()
+                ?? throw new SteamNotFoundException();
+
+            UserId = GetLastUserId();
             UpdateUserGameRecord();
+            if (GameInfoDict == null) {
+                throw new InvalidDataException();
+            }
+            StartWatch();
         }
 
         public UInt64 GetLastUserId() {
@@ -77,7 +95,7 @@ namespace SteamGameInfoParser {
             Changed?.Invoke(this, new());
         }
 
-        public void StartWatch() {
+        private void StartWatch() {
             ConfigWatcher = new() {
                 Path = Path.Combine(SteamPath, "userdata", ((UInt32)UserId).ToString(), "config"),
                 Filter = "localconfig.vdf",
@@ -94,6 +112,7 @@ namespace SteamGameInfoParser {
         public void Dispose() {
             GC.SuppressFinalize(this);
             ConfigWatcher?.Dispose();
+            _instance = null;
         }
 
 

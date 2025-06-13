@@ -14,7 +14,7 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher {
         public string Description => Resource.plugin_description;
         public static string PluginID => "9e13e2aa-da92-4094-84f8-6f2e2d3e90db";
 
-        private GameLibrary library { get; set; }
+        private GameLibrary library { get; set; } = GameLibrary.Instance;
         private readonly Dictionary<string, GameSetting> _GameSettings;
         private readonly PluginJsonStorage<Settings> _storage;
 
@@ -41,8 +41,6 @@ namespace Community.PowerToys.Run.Plugin.SteamLauncher {
                 _storage.Save();
             }
             _GameSettings = _storage.Load().Data;
-
-            library = new();
             
         }
         

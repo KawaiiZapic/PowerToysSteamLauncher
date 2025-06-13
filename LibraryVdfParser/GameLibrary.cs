@@ -17,7 +17,16 @@ namespace SteamGameInfoParser {
 
         public event EventHandler? Changed;
 
-        public GameLibrary() {
+        private static GameLibrary? _instance;
+
+        public static GameLibrary Instance {
+            get {
+                _instance ??= new GameLibrary();
+                return _instance;
+            }
+        }
+
+        private GameLibrary() {
             SteamPath =
                 Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Valve\\Steam", "InstallPath", null)?.ToString()
                 ?? Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Valve\\Steam", "InstallPath", null)?.ToString()
@@ -109,6 +118,7 @@ namespace SteamGameInfoParser {
         protected virtual void Dispose(bool disposing) {
             if (!_disposed && disposing) {
                 gameLibrary.Dispose();
+                _instance = null;
                 _disposed = true;
             }
         }
