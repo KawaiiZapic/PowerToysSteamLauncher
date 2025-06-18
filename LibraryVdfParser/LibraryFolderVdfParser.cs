@@ -27,50 +27,51 @@ namespace SteamGameInfoParser {
         }
 
         public void UpdateGamesRecord() {
-            apps.Clear();
-            foreach (var library in GetLibraryPaths()) {
-                var dir = new DirectoryInfo(Path.Join(library, "steamapps"));
-                var files = dir.GetFiles("appmanifest_*.acf");
-                foreach (var f in files) {
-                    apps.Add(f.Name[12..^4]);
+            lock (apps) {
+                apps.Clear();
+                foreach (var library in GetLibraryPaths()) {
+                    var dir = new DirectoryInfo(Path.Join(library, "steamapps"));
+                    var files = dir.GetFiles("appmanifest_*.acf");
+                    foreach (var f in files) {
+                        apps.Add(f.Name[12..^4]);
+                    }
                 }
             }
         }
 
         public void StartWatch() {
-            StopWatch();
-            
-            var debounced = Debounce(() => {
-                UpdateGamesRecord();
-                Changed?.Invoke(this, new EventArgs());
-            }, 5000);
+            lock (ConfigWatcher) {
+                StopWatch();
 
-            FileSystemWatcher lfw = new() {
-                Path = Path.Combine(SteamPath, "config"),
-                Filter = "libraryfolders.vdf",
-                NotifyFilter = NotifyFilters.FileName,
-                EnableRaisingEvents = true
-            };
-            lfw.Renamed += (sender, e) => {
-                debounced();
-                Debounce(StartWatch, 5000)();
-            };
-            ConfigWatcher.Add(lfw);
-            foreach (var library in GetLibraryPaths()) {
-                FileSystemWatcher acfw = new() {
-                    Path = Path.Join(library, "steamapps"),
-                    Filter = "appmanifest_*.acf",
+                FileSystemWatcher lfw = new() {
+                    Path = Path.Combine(SteamPath, "config"),
+                    Filter = "libraryfolders.vdf",
+                    NotifyFilter = NotifyFilters.FileName,
                     EnableRaisingEvents = true
                 };
-                acfw.Renamed += (sender, e) => {
-                    debounced();
+                lfw.Renamed += (sender, e) => {
+                    UpdateGamesRecord();
+                    Changed?.Invoke(this, new EventArgs());
+                    StartWatch();
                 };
-                acfw.Deleted += (sender, e) => {
-                    debounced();
-                };
-                ConfigWatcher.Add(acfw);
+                ConfigWatcher.Add(lfw);
+                foreach (var library in GetLibraryPaths()) {
+                    FileSystemWatcher acfw = new() {
+                        Path = Path.Join(library, "steamapps"),
+                        Filter = "appmanifest_*.acf",
+                        EnableRaisingEvents = true
+                    };
+                    acfw.Renamed += (sender, e) => {
+                        UpdateGamesRecord();
+                        Changed?.Invoke(this, new EventArgs());
+                    };
+                    acfw.Deleted += (sender, e) => {
+                        UpdateGamesRecord();
+                        Changed?.Invoke(this, new EventArgs());
+                    };
+                    ConfigWatcher.Add(acfw);
+                }
             }
-
         }
 
         public void StopWatch() {
@@ -83,18 +84,6 @@ namespace SteamGameInfoParser {
         public void Dispose() {
             GC.SuppressFinalize(this);
             StopWatch();
-        }
-
-        static Action Debounce(Action func, int milliseconds) {
-            var last = 0;
-            return () => {
-                var current = Interlocked.Increment(ref last);
-                Task.Delay(milliseconds).ContinueWith(task => {
-                    if (current == last)
-                        func();
-                    task.Dispose();
-                });
-            };
         }
     }
 }

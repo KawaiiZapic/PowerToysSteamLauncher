@@ -85,14 +85,16 @@ namespace SteamGameInfoParser {
         }
 
         public void UpdateUserGameRecord() {
-            var path = Path.Combine(SteamPath, "userdata", ((UInt32)UserId).ToString(), "config", "localconfig.vdf");
-            using var file = File.OpenRead(path);
+            lock (GameInfoDict) {
+                var path = Path.Combine(SteamPath, "userdata", ((UInt32)UserId).ToString(), "config", "localconfig.vdf");
+                using var file = File.OpenRead(path);
 
-            var ser = KVSerializer.Create(KVSerializationFormat.KeyValues1Text);
-            var result = ser.Deserialize<LocalConfigVdfRoot>(file, new KVSerializerOptions { HasEscapeSequences = true });
+                var ser = KVSerializer.Create(KVSerializationFormat.KeyValues1Text);
+                var result = ser.Deserialize<LocalConfigVdfRoot>(file, new KVSerializerOptions { HasEscapeSequences = true });
 
-            GameInfoDict = result.Software.Valve.Steam.apps;
-            Changed?.Invoke(this, new());
+                GameInfoDict = result.Software.Valve.Steam.apps;
+                Changed?.Invoke(this, new());
+            }
         }
 
         private void StartWatch() {
@@ -102,9 +104,8 @@ namespace SteamGameInfoParser {
                 NotifyFilter = NotifyFilters.FileName,
                 EnableRaisingEvents = true
             };
-            var debounced = Debounce(UpdateUserGameRecord, 5000);
             ConfigWatcher.Renamed += (e, sender) => {
-                debounced();
+                UpdateUserGameRecord();
             };
         }
 
@@ -113,19 +114,6 @@ namespace SteamGameInfoParser {
             GC.SuppressFinalize(this);
             ConfigWatcher?.Dispose();
             _instance = null;
-        }
-
-
-        static Action Debounce(Action func, int milliseconds) {
-            var last = 0;
-            return () => {
-                var current = Interlocked.Increment(ref last);
-                Task.Delay(milliseconds).ContinueWith(task => {
-                    if (current == last)
-                        func();
-                    task.Dispose();
-                });
-            };
         }
     }
 }

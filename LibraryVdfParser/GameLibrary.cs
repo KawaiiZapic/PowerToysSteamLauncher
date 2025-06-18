@@ -1,5 +1,7 @@
 ﻿using Microsoft.Win32;
 using System.Globalization;
+using System.Threading.Tasks;
+using System;
 
 namespace SteamGameInfoParser {
     public class GameLibrary: IDisposable {
@@ -7,6 +9,7 @@ namespace SteamGameInfoParser {
         public Exception? InitializedFailedReason { get; private set; }
         public string SteamPath { get; private set; }
         public List<SteamGame> SteamGames { get; private set; } = [];
+        private readonly object _lock = new();
 
         private bool _disposed;
 
@@ -57,57 +60,59 @@ namespace SteamGameInfoParser {
         }
 
         public void ReloadData() {
-            AppList = LibraryVdfParser.Read(Path.Combine(SteamPath, "appcache", "appinfo.vdf"));
+            lock (SteamGames) {
+                AppList = LibraryVdfParser.Read(Path.Combine(SteamPath, "appcache", "appinfo.vdf"));
 
-            SteamGames.Clear();
+                SteamGames.Clear();
 
-            foreach (var id in gameLibrary.apps) {
-                string? localizationName = null;
-                string? icon = null;
-                string? large_icon = null;
-                string name = id;
-                string type = "game";
+                foreach (var id in gameLibrary.apps) {
+                    string? localizationName = null;
+                    string? icon = null;
+                    string? large_icon = null;
+                    string name = id;
+                    string type = "game";
 
-                var appDetail = AppList!.GetValueOrDefault(uint.Parse(id, CultureInfo.InvariantCulture), null);
-                if (appDetail != null) {
-                    var common = appDetail.Data.common;
+                    var appDetail = AppList!.GetValueOrDefault(uint.Parse(id, CultureInfo.InvariantCulture), null);
+                    if (appDetail != null) {
+                        var common = appDetail.Data.common;
 
-                    type = common.type;
-                    name = common.name;
-                    icon = Path.Combine(SteamPath, "steam", "games", common.clienticon + ".ico");
-                    if (!File.Exists(icon)) {
-                        if (Directory.Exists(Path.Combine(SteamPath, "steam", "games"))) {
-                            Task.Run(async () => {
-                                try {
-                                    using var client = new HttpClient();
-                                    var res = await client.GetAsync($"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/apps/{id}/{common.clienticon}.ico");
-                                    if (res.IsSuccessStatusCode) {
-                                        await res.Content.CopyToAsync(new FileStream(icon, FileMode.CreateNew));
-                                    }
-                                } finally { }
-                            });
+                        type = common.type;
+                        name = common.name;
+                        icon = Path.Combine(SteamPath, "steam", "games", common.clienticon + ".ico");
+                        if (!File.Exists(icon)) {
+                            if (Directory.Exists(Path.Combine(SteamPath, "steam", "games"))) {
+                                Task.Run(async () => {
+                                    try {
+                                        using var client = new HttpClient();
+                                        var res = await client.GetAsync($"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/apps/{id}/{common.clienticon}.ico");
+                                        if (res.IsSuccessStatusCode) {
+                                            await res.Content.CopyToAsync(new FileStream(icon, FileMode.CreateNew));
+                                        }
+                                    } finally { }
+                                });
+                            }
+
                         }
+                        large_icon = Path.Combine(SteamPath, "appcache", "librarycache", id, "header.jpg");
+                        if (!File.Exists(large_icon)) {
+                            large_icon = icon;
+                        }
+                        if (common.name_localized != null) {
+                            localizationName = common.name_localized!.GetValueOrDefault(PreferredLang, null);
+                        }
+                    }
 
-                    }
-                    large_icon = Path.Combine(SteamPath, "appcache", "librarycache", id, "header.jpg");
-                    if (!File.Exists(large_icon)) {
-                        large_icon = icon;
-                    }
-                    if (common.name_localized != null) {
-                        localizationName = common.name_localized!.GetValueOrDefault(PreferredLang, null);
-                    }
+                    SteamGames.Add(new SteamGame {
+                        id = id,
+                        name = name,
+                        icon = icon,
+                        type = type.ToLower(CultureInfo.InvariantCulture),
+                        large_icon = large_icon,
+                        localizationName = localizationName
+                    });
                 }
-
-                SteamGames.Add(new SteamGame {
-                    id = id,
-                    name = name,
-                    icon = icon,
-                    type = type.ToLower(CultureInfo.InvariantCulture),
-                    large_icon = large_icon,
-                    localizationName = localizationName
-                });
+                Changed?.Invoke(this, new());
             }
-            Changed?.Invoke(this, new());
         }
 
         public void Dispose() {
