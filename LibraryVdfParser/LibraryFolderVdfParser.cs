@@ -18,7 +18,7 @@ namespace SteamGameInfoParser {
 
         string[] GetLibraryPaths() {
             var path = Path.Combine(SteamPath, "config", "libraryfolders.vdf");
-            using var file = File.OpenRead(path);
+            using FileStream file = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read);
 
             var ser = KVSerializer.Create(KVSerializationFormat.KeyValues1Text);
             var result = ser.Deserialize<LibraryFolder[]>(file, new KVSerializerOptions { HasEscapeSequences = true });
