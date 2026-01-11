@@ -16,24 +16,28 @@ namespace SteamGameInfoParser {
             UpdateGamesRecord();
         }
 
-        string[] GetLibraryPaths() {
-            var path = Path.Combine(SteamPath, "config", "libraryfolders.vdf");
-            using FileStream file = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+        IEnumerable<string> GetLibraryPaths() {
+            try {
+                var path = Path.Combine(SteamPath, "config", "libraryfolders.vdf");
+                using FileStream file = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read);
 
-            var ser = KVSerializer.Create(KVSerializationFormat.KeyValues1Text);
-            var result = ser.Deserialize<LibraryFolder[]>(file, new KVSerializerOptions { HasEscapeSequences = true });
+                var ser = KVSerializer.Create(KVSerializationFormat.KeyValues1Text);
+                var result = ser.Deserialize<LibraryFolder[]>(file, new KVSerializerOptions { HasEscapeSequences = true });
 
-            return [.. result.Select(l => l.path)];
+                return result.Select(l => l.path);
+            } catch (Exception) {
+                return [];
+            }
         }
 
         public void UpdateGamesRecord() {
             lock (apps) {
-                apps.Clear();
+                var _newApps = new HashSet<string>();
                 foreach (var library in GetLibraryPaths()) {
                     var dir = new DirectoryInfo(Path.Join(library, "steamapps"));
                     var files = dir.GetFiles("appmanifest_*.acf");
                     foreach (var f in files) {
-                        apps.Add(f.Name[12..^4]);
+                        _newApps.Add(f.Name[12..^4]);
                     }
                 }
             }
